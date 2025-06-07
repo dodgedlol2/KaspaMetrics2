@@ -124,24 +124,29 @@ def get_current_user():
             'last_name': ''
         }
 
-def require_authentication(subscription_level=None):
-    """Decorator/function to require authentication for a page"""
+def require_authentication_for_premium():
+    """Require authentication and premium subscription for data export"""
     user = get_current_user()
     
     if user['username'] == 'public':
-        st.error("🔐 This page requires authentication")
-        st.info("Please log in to access this feature")
+        st.error("🔐 This feature requires a Premium account")
+        st.info("Please create an account and upgrade to Premium to access data export")
         
-        if st.button("🔑 Go to Login", key="require_auth_login"):
-            st.switch_page("pages/5_⚙️_Authentication.py")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔑 Login", key="require_auth_login", use_container_width=True):
+                st.switch_page("pages/5_⚙️_Authentication.py")
+        with col2:
+            if st.button("🚀 Sign Up", key="require_auth_signup", use_container_width=True, type="primary"):
+                st.switch_page("pages/5_⚙️_Authentication.py")
         
         st.stop()
     
-    if subscription_level and user['subscription'] not in subscription_level:
-        st.error(f"🔒 This feature requires {subscription_level} subscription")
-        st.info(f"Current plan: {user['subscription']}")
+    if user['subscription'] != 'premium':
+        st.error("🔒 This feature requires Premium subscription")
+        st.info(f"Current plan: {user['subscription'].title()}")
         
-        if st.button("⬆️ Upgrade Account", key="require_auth_upgrade"):
+        if st.button("⬆️ Upgrade to Premium", key="require_premium_upgrade", use_container_width=True, type="primary"):
             st.switch_page("pages/5_⚙️_Authentication.py")
         
         st.stop()
@@ -227,37 +232,12 @@ def logout_user():
         if key in st.session_state:
             del st.session_state[key]
 
-def render_auth_sidebar(user):
-    """Render authentication section in sidebar"""
-    with st.sidebar:
-        st.markdown("---")
-        
-        if user['username'] == 'public':
-            st.markdown("### 🔐 Account")
-            
-            if st.button("🔑 Login", use_container_width=True, key="sidebar_login"):
-                st.switch_page("pages/5_⚙️_Authentication.py")
-            
-            if st.button("🚀 Sign Up", use_container_width=True, key="sidebar_signup", type="primary"):
-                st.switch_page("pages/5_⚙️_Authentication.py")
-        
-        else:
-            st.markdown(f"### 👤 {user['name']}")
-            st.markdown(f"**Plan:** {user['subscription'].title()}")
-            
-            if st.button("⚙️ Account Settings", use_container_width=True, key="sidebar_settings"):
-                st.switch_page("pages/5_⚙️_Authentication.py")
-            
-            if st.button("🚪 Logout", use_container_width=True, key="sidebar_logout"):
-                logout_user()
-                st.rerun()
-
 def get_subscription_features(subscription_level):
     """Get features available for subscription level"""
     features = {
         'public': {
-            'data_days': 7,
-            'charts': ['basic'],
+            'data_days': 0,  # unlimited for all
+            'charts': ['basic', 'technical', 'advanced'],
             'export': False,
             'api': False,
             'support': 'community'
@@ -271,9 +251,9 @@ def get_subscription_features(subscription_level):
         },
         'premium': {
             'data_days': 0,  # unlimited
-            'charts': ['basic', 'technical', 'advanced', 'custom'],
-            'export': True,
-            'api': 'full',
+            'charts': ['basic', 'technical', 'advanced'],
+            'export': True,  # Only premium gets export
+            'api': True,
             'support': 'email'
         }
     }
@@ -283,17 +263,18 @@ def get_subscription_features(subscription_level):
 def check_feature_access(feature_name, user_subscription):
     """Check if user has access to specific feature"""
     feature_requirements = {
-        'basic_charts': ['public', 'free', 'premium'],
-        'advanced_charts': ['free', 'premium'],
-        'power_law_basic': ['free', 'premium'],
-        'power_law_advanced': ['free', 'premium'],
-        'network_metrics': ['free', 'premium'],
-        'data_export': ['premium'],  # Only premium gets data export
+        # All features available to everyone except data export
+        'price_charts': ['public', 'free', 'premium'],
+        'power_law': ['public', 'free', 'premium'],
+        'network_metrics': ['public', 'free', 'premium'],
+        'technical_indicators': ['public', 'free', 'premium'],
+        'advanced_charts': ['public', 'free', 'premium'],
+        # Only data export requires premium
+        'data_export': ['premium'],
         'api_access': ['premium'],
-        'custom_models': ['premium'],
     }
     
-    required_subscriptions = feature_requirements.get(feature_name, ['premium'])
+    required_subscriptions = feature_requirements.get(feature_name, ['public', 'free', 'premium'])
     return user_subscription in required_subscriptions
 
 def save_auth_config():

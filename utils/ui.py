@@ -295,14 +295,14 @@ def render_sidebar_navigation(user):
             st.markdown(f'<span class="subscription-badge badge-{user["subscription"]}">{user["subscription"].upper()}</span>', unsafe_allow_html=True)
         else:
             st.markdown("**👤 Public Access**")
-            st.markdown('<span class="subscription-badge badge-public">PUBLIC</span>', unsafe_allow_html=True)
+            st.markdown('<span class="subscription-badge badge-public">FREE ACCESS</span>', unsafe_allow_html=True)
         
         st.markdown("---")
         
         # Navigation menu
         st.markdown("### 📊 Navigation")
         
-        # Home
+        # Home - Available to all
         if st.button("🏠 Dashboard", use_container_width=True, key="nav_home"):
             st.switch_page("streamlit_app.py")
         
@@ -323,7 +323,7 @@ def render_sidebar_navigation(user):
             if st.button("📋 Data Export", use_container_width=True, key="nav_export"):
                 st.switch_page("pages/4_📋_Data_Export.py")
         else:
-            st.button("🔒 Data Export", disabled=True, use_container_width=True, help="Requires Premium")
+            st.button("🔒 Data Export", disabled=True, use_container_width=True, help="Requires Premium Account")
         
         st.markdown("---")
         
@@ -345,38 +345,12 @@ def render_sidebar_navigation(user):
                 logout_user()
                 st.rerun()
 
-def show_login_prompt(feature_name: str = "this feature"):
-    """Show login prompt for premium features"""
-    st.markdown(f"""
-    <div class="login-prompt">
-        <h3>🔐 Login Required</h3>
-        <p>To access {feature_name}, please create a free account or login.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 1, 1])
-    
-    # Create unique keys based on feature name
-    safe_feature_name = feature_name.replace(" ", "_").replace("-", "_").replace(".", "_")
-    
-    with col1:
-        if st.button("🚀 Create Account", type="primary", use_container_width=True, key=f"create_account_{safe_feature_name}"):
-            st.switch_page("pages/5_⚙️_Authentication.py")
-    
-    with col2:
-        if st.button("🔑 Login", use_container_width=True, key=f"login_{safe_feature_name}"):
-            st.switch_page("pages/5_⚙️_Authentication.py")
-    
-    with col3:
-        if st.button("ℹ️ Learn More", use_container_width=True, key=f"learn_more_{safe_feature_name}"):
-            st.switch_page("streamlit_app.py")
-
-def show_upgrade_prompt(current_subscription: str, required_subscription: str = 'premium'):
-    """Show upgrade prompt for premium features"""
+def show_premium_required_prompt():
+    """Show premium required prompt for data export"""
     st.markdown(f"""
     <div class="upgrade-prompt">
-        <h3>⭐ Premium Feature</h3>
-        <p>This feature requires a Premium subscription.</p>
+        <h3>⭐ Premium Feature Required</h3>
+        <p>Data export is available exclusively for Premium subscribers.</p>
         <p><strong>Upgrade to Premium - $29/month</strong></p>
     </div>
     """, unsafe_allow_html=True)
@@ -384,52 +358,51 @@ def show_upgrade_prompt(current_subscription: str, required_subscription: str = 
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button(
-            f"⬆️ Upgrade to Premium", 
-            type="primary", 
-            use_container_width=True, 
-            key=f"upgrade_to_premium_{current_subscription}"
-        ):
-            st.balloons()
-            st.success(f"Redirecting to Premium upgrade...")
+        if st.button("🔑 Login", use_container_width=True, key="premium_login"):
             st.switch_page("pages/5_⚙️_Authentication.py")
     
     with col2:
-        if st.button(
-            "📋 View Plans", 
-            use_container_width=True, 
-            key=f"view_plans_premium_{current_subscription}"
-        ):
+        if st.button("⭐ Get Premium", type="primary", use_container_width=True, key="get_premium"):
             st.switch_page("pages/5_⚙️_Authentication.py")
 
-def render_feature_access_check(feature_name: str, required_subscription: list, current_user):
-    """Check and handle feature access with appropriate prompts"""
-    if current_user['username'] == 'public':
-        show_login_prompt(feature_name)
-        st.stop()
+def show_create_account_prompt():
+    """Show create account prompt for public users"""
+    st.markdown(f"""
+    <div class="login-prompt">
+        <h3>🚀 Join Kaspa Analytics</h3>
+        <p>Create your free account to track your usage and upgrade when ready!</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    if current_user['subscription'] not in required_subscription:
-        show_upgrade_prompt(current_user['subscription'], 'premium')
-        st.stop()
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("🔑 Login", use_container_width=True, key="account_login"):
+            st.switch_page("pages/5_⚙️_Authentication.py")
+    
+    with col2:
+        if st.button("🚀 Create Account", type="primary", use_container_width=True, key="create_account"):
+            st.switch_page("pages/5_⚙️_Authentication.py")
 
 def render_subscription_comparison():
     """Render subscription comparison table"""
-    st.subheader("📊 Subscription Comparison")
+    st.subheader("📊 What You Get")
     
     features = [
-        {"feature": "Basic Price Charts", "free": "✅", "premium": "✅"},
-        {"feature": "Advanced Charts", "free": "✅", "premium": "✅"},
-        {"feature": "Power Law Analysis", "free": "✅", "premium": "✅"},
+        {"feature": "Price Charts & Analysis", "free": "✅", "premium": "✅"},
+        {"feature": "Power Law Models", "free": "✅", "premium": "✅"},
         {"feature": "Network Metrics", "free": "✅", "premium": "✅"},
         {"feature": "Technical Indicators", "free": "✅", "premium": "✅"},
-        {"feature": "Historical Data", "free": "✅", "premium": "✅"},
-        {"feature": "Data Export", "free": "❌", "premium": "✅"},
+        {"feature": "Full Historical Data", "free": "✅", "premium": "✅"},
+        {"feature": "Real-time Updates", "free": "✅", "premium": "✅"},
+        {"feature": "Data Export (CSV/JSON)", "free": "❌", "premium": "✅"},
         {"feature": "API Access", "free": "❌", "premium": "✅"},
         {"feature": "Email Support", "free": "❌", "premium": "✅"},
+        {"feature": "No Ads", "free": "✅", "premium": "✅"},
     ]
     
     # Create comparison table
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns([3, 1, 1])
     
     with col1:
         st.markdown("**Feature**")

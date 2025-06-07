@@ -5,7 +5,7 @@ credentials:
       first_name: Admin
       last_name: User
       password: admin123  # Will be auto-hashed by streamlit-authenticator
-      subscription: pro
+      subscription: premium
       failed_login_attempts: 0
       logged_in: false
     premium_user:

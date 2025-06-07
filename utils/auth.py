@@ -25,7 +25,7 @@ def get_auth_config():
                     'first_name': 'Admin',
                     'last_name': 'User',
                     'password': 'admin123',
-                    'subscription': 'pro',
+                    'subscription': 'premium',
                     'failed_login_attempts': 0,
                     'logged_in': False
                 },
@@ -263,25 +263,18 @@ def get_subscription_features(subscription_level):
             'support': 'community'
         },
         'free': {
-            'data_days': 30,
-            'charts': ['basic', 'technical'],
+            'data_days': 0,  # unlimited
+            'charts': ['basic', 'technical', 'advanced'],
             'export': False,
             'api': False,
             'support': 'community'
         },
         'premium': {
             'data_days': 0,  # unlimited
-            'charts': ['basic', 'technical', 'advanced'],
-            'export': True,
-            'api': 'limited',
-            'support': 'email'
-        },
-        'pro': {
-            'data_days': 0,  # unlimited
             'charts': ['basic', 'technical', 'advanced', 'custom'],
             'export': True,
             'api': 'full',
-            'support': 'priority'
+            'support': 'email'
         }
     }
     
@@ -290,18 +283,17 @@ def get_subscription_features(subscription_level):
 def check_feature_access(feature_name, user_subscription):
     """Check if user has access to specific feature"""
     feature_requirements = {
-        'basic_charts': ['public', 'free', 'premium', 'pro'],
-        'advanced_charts': ['premium', 'pro'],
-        'power_law_basic': ['free', 'premium', 'pro'],
-        'power_law_advanced': ['premium', 'pro'],
-        'network_metrics': ['premium', 'pro'],
-        'data_export': ['premium', 'pro'],
-        'api_access': ['pro'],
-        'custom_models': ['pro'],
-        'admin_panel': ['pro'],  # Only for admin user specifically
+        'basic_charts': ['public', 'free', 'premium'],
+        'advanced_charts': ['free', 'premium'],
+        'power_law_basic': ['free', 'premium'],
+        'power_law_advanced': ['free', 'premium'],
+        'network_metrics': ['free', 'premium'],
+        'data_export': ['premium'],  # Only premium gets data export
+        'api_access': ['premium'],
+        'custom_models': ['premium'],
     }
     
-    required_subscriptions = feature_requirements.get(feature_name, ['pro'])
+    required_subscriptions = feature_requirements.get(feature_name, ['premium'])
     return user_subscription in required_subscriptions
 
 def save_auth_config():
@@ -327,7 +319,7 @@ def get_user_stats(username):
     return {
         'login_count': 42,
         'last_login': '2024-01-15',
-        'features_used': ['price_charts', 'power_law', 'data_export'],
+        'features_used': ['price_charts', 'power_law', 'network_metrics'],
         'subscription_start': '2024-01-01',
         'data_exports': 15,
         'api_calls': 1250

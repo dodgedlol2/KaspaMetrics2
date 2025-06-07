@@ -23,7 +23,7 @@ from utils.data import fetch_kaspa_price_data, get_market_stats
 from utils.ui import (
     render_page_header, 
     render_sidebar_navigation, 
-    show_login_prompt,
+    show_create_account_prompt,
     apply_custom_css,
     render_footer
 )
@@ -107,7 +107,7 @@ def render_public_homepage():
     # Hero section
     render_page_header(
         "💎 Kaspa Analytics Pro",
-        "Professional blockchain analysis platform for Kaspa (KAS)",
+        "Professional blockchain analysis platform for Kaspa (KAS) - Free for everyone!",
         show_auth_buttons=True
     )
     
@@ -145,10 +145,10 @@ def render_public_homepage():
             f"{stats.get('hash_rate', 0):.2f} EH/s"
         )
     
-    # Quick chart preview (7 days for public)
+    # Quick chart preview
     if not df.empty:
-        st.subheader("📈 7-Day Price Preview")
-        chart_data = df.tail(7)
+        st.subheader("📈 Price Chart Preview")
+        chart_data = df.tail(30)  # 30 days for public preview
         
         if PLOTLY_AVAILABLE:
             fig = go.Figure()
@@ -161,7 +161,7 @@ def render_public_homepage():
             ))
             
             fig.update_layout(
-                title="Kaspa Price - Last 7 Days (Public Preview)",
+                title="Kaspa Price - Last 30 Days (Free Access)",
                 xaxis_title="Date",
                 yaxis_title="Price (USD)",
                 height=400,
@@ -174,58 +174,60 @@ def render_public_homepage():
             # Fallback to basic line chart
             st.line_chart(chart_data.set_index('timestamp')['price'])
         
-        st.info("📊 Public users see 7-day preview. Create a free account for full access!")
+        st.info("📊 All charts and analysis tools are free! Only data export requires Premium.")
     
     # Feature showcase
-    st.subheader("🚀 Platform Features")
+    st.subheader("🚀 What's Available")
     
     feature_tabs = sac.tabs([
-        sac.TabsItem(label='Analytics', icon='graph-up'),
-        sac.TabsItem(label='Data Access', icon='database'),
-        sac.TabsItem(label='Tools', icon='tools'),
+        sac.TabsItem(label='Free Features', icon='check-circle'),
+        sac.TabsItem(label='Premium Features', icon='star'),
+        sac.TabsItem(label='Getting Started', icon='play'),
     ], key='feature_showcase')
     
-    if feature_tabs == 'Analytics':
-        render_analytics_showcase()
-    elif feature_tabs == 'Data Access':
-        render_data_showcase()
+    if feature_tabs == 'Free Features':
+        render_free_features_showcase()
+    elif feature_tabs == 'Premium Features':
+        render_premium_features_showcase()
     else:
-        render_tools_showcase()
+        render_getting_started_showcase()
     
-    # Pricing teaser
-    st.subheader("💰 Choose Your Plan")
+    # Pricing
+    st.subheader("💰 Simple Pricing")
     
     pricing_cols = st.columns(2)
     
     with pricing_cols[0]:
         with st.container():
-            st.markdown("### 🆓 Free")
+            st.markdown("### 🆓 Free Forever")
             st.markdown("**$0/month**")
-            st.write("• Full price history")
-            st.write("• All chart types & indicators")
-            st.write("• Power law analysis")
-            st.write("• Network metrics")
-            st.write("• Community support")
+            st.write("• ✅ All price charts & analysis")
+            st.write("• ✅ Power law models")
+            st.write("• ✅ Network metrics")
+            st.write("• ✅ Technical indicators")
+            st.write("• ✅ Full historical data")
+            st.write("• ✅ Real-time updates")
             
-            if st.button("🚀 Get Started Free", key="pricing_free", use_container_width=True, type="primary"):
-                st.switch_page("pages/5_⚙️_Authentication.py")
+            if st.button("🚀 Start Free", key="pricing_free", use_container_width=True, type="primary"):
+                st.info("You're already using it! All features above are free. Create an account to track usage.")
     
     with pricing_cols[1]:
         with st.container():
             st.markdown("### ⭐ Premium")
             st.markdown("**$29/month**")
-            st.write("• Everything in Free")
-            st.write("• Data export (CSV/JSON)")
-            st.write("• API access")
-            st.write("• Email support")
-            st.write("• Priority features")
+            st.write("• ✅ Everything in Free")
+            st.write("• 📋 Data export (CSV/JSON)")
+            st.write("• 🔌 API access")
+            st.write("• 📧 Email support")
+            st.write("• 🎯 Priority features")
+            st.write("• 📊 Advanced analytics")
             
             if st.button("⭐ Upgrade to Premium", key="pricing_premium", use_container_width=True):
                 st.switch_page("pages/5_⚙️_Authentication.py")
     
-    # Call to action
+    # Call to action for account creation
     st.markdown("---")
-    show_login_prompt("the full Kaspa Analytics platform")
+    show_create_account_prompt()
 
 def render_authenticated_homepage(user):
     """Authenticated user dashboard"""
@@ -262,14 +264,14 @@ def render_authenticated_homepage(user):
         if subscription == 'premium':
             st.metric("Data Export", "✅ Available")
         else:
-            st.metric("Data Export", "🔒 Premium Feature")
+            st.metric("Data Export", "⭐ Upgrade to Premium")
     
     # Enhanced chart for authenticated users
     if not df.empty:
         st.subheader("📈 Price Analysis Dashboard")
         
         chart_data = df.tail(365)  # 1 year for all users
-        st.success(f"📊 {subscription.title()} account: Full historical data access")
+        st.success(f"📊 {subscription.title()} account: Full access to all analytics tools")
         
         # Create advanced chart
         fig = go.Figure()
@@ -341,7 +343,8 @@ def render_authenticated_homepage(user):
             if st.button("📋 Data Export", key="dash_export", use_container_width=True):
                 st.switch_page("pages/4_📋_Data_Export.py")
         else:
-            st.button("🔒 Data Export", disabled=True, use_container_width=True)
+            if st.button("⭐ Get Premium", key="dash_premium", use_container_width=True):
+                st.switch_page("pages/5_⚙️_Authentication.py")
     
     # Recent activity (placeholder)
     st.subheader("📋 Recent Activity")
@@ -362,68 +365,80 @@ def render_authenticated_homepage(user):
             with col3:
                 st.write(activity["status"])
 
-def render_analytics_showcase():
-    """Show analytics features"""
+def render_free_features_showcase():
+    """Show what's available for free"""
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("#### 📊 Advanced Analytics")
-        st.write("• **Power Law Models**: Mathematical price predictions")
-        st.write("• **Technical Indicators**: RSI, MACD, Moving averages")
-        st.write("• **Trend Analysis**: Support/resistance levels")
-        st.write("• **Volatility Metrics**: Price volatility tracking")
+        st.markdown("#### 📈 Price Analysis")
+        st.write("• **Advanced Charts**: Candlestick, OHLC, Area charts")
+        st.write("• **Technical Indicators**: RSI, MACD, Bollinger Bands")
+        st.write("• **Multiple Timeframes**: 1H, 4H, 1D, 1W")
+        st.write("• **Full History**: Complete price data")
+        st.write("• **Real-time Updates**: Live market data")
         
-        if st.button("🔍 Explore Analytics", key="explore_analytics", use_container_width=True):
+        if st.button("📈 Try Price Charts", key="try_charts", use_container_width=True):
+            st.switch_page("pages/1_📈_Price_Charts.py")
+    
+    with col2:
+        st.markdown("#### 🔬 Advanced Analytics")
+        st.write("• **Power Law Models**: Mathematical predictions")
+        st.write("• **Network Metrics**: Hash rate, difficulty, addresses")
+        st.write("• **Market Analysis**: Support/resistance levels")
+        st.write("• **Trend Analysis**: Moving averages, signals")
+        st.write("• **Volume Analysis**: Trading volume insights")
+        
+        if st.button("📊 Try Power Law", key="try_powerlaw", use_container_width=True):
             st.switch_page("pages/2_📊_Power_Law.py")
-    
-    with col2:
-        st.markdown("#### 🌐 Network Insights")
-        st.write("• **Hash Rate Tracking**: Network security metrics")
-        st.write("• **Address Analysis**: Active wallet tracking")
-        st.write("• **Transaction Metrics**: Network usage stats")
-        st.write("• **Mining Analytics**: Difficulty and rewards")
-        
-        if st.button("📊 View Network Data", key="explore_network", use_container_width=True):
-            st.switch_page("pages/3_🌐_Network_Metrics.py")
 
-def render_data_showcase():
-    """Show data access features"""
+def render_premium_features_showcase():
+    """Show premium features"""
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("#### 📈 Real-time Data")
-        st.write("• **Live Price Feeds**: Real-time KAS pricing")
-        st.write("• **Historical Data**: Complete price history")
-        st.write("• **High Frequency**: Minute-by-minute updates")
-        st.write("• **Multiple Exchanges**: Aggregated pricing data")
+        st.markdown("#### 📋 Data Export")
+        st.write("• **CSV/JSON Export**: Download any dataset")
+        st.write("• **Custom Date Ranges**: Export exactly what you need")
+        st.write("• **Bulk Downloads**: Multiple datasets at once")
+        st.write("• **Automated Reports**: Scheduled exports")
     
     with col2:
-        st.markdown("#### 📋 Export Options")
-        st.write("• **CSV/JSON Export**: Download your data")
-        st.write("• **API Access**: Programmatic data access")
-        st.write("• **Custom Reports**: Automated reporting")
-        st.write("• **Webhooks**: Real-time notifications")
-        
-        if st.button("📥 Export Data", key="explore_export", use_container_width=True):
-            st.switch_page("pages/4_📋_Data_Export.py")
+        st.markdown("#### 🔌 API Access")
+        st.write("• **REST API**: Programmatic data access")
+        st.write("• **Real-time Feeds**: Live data streams")
+        st.write("• **50k Requests/Month**: Generous limits")
+        st.write("• **Email Support**: Priority assistance")
+    
+    st.markdown("---")
+    if st.button("⭐ Upgrade to Premium - $29/month", key="upgrade_premium_showcase", use_container_width=True, type="primary"):
+        st.switch_page("pages/5_⚙️_Authentication.py")
 
-def render_tools_showcase():
-    """Show tools and utilities"""
+def render_getting_started_showcase():
+    """Show getting started guide"""
+    st.markdown("#### 🚀 Getting Started")
+    
+    steps = [
+        "1️⃣ **Explore Free**: Start with our price charts and analysis tools",
+        "2️⃣ **Analyze Data**: Use power law models and technical indicators", 
+        "3️⃣ **Monitor Network**: Check hash rate and network health",
+        "4️⃣ **Create Account**: Track your usage and preferences",
+        "5️⃣ **Upgrade Premium**: Get data export when you need it"
+    ]
+    
+    for step in steps:
+        st.markdown(step)
+    
+    st.markdown("---")
+    
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("#### 🛠️ Analysis Tools")
-        st.write("• **Custom Dashboards**: Personalized views")
-        st.write("• **Alert System**: Price and volume alerts")
-        st.write("• **Portfolio Tracking**: Track your holdings")
-        st.write("• **Comparison Tools**: Compare with other assets")
+        if st.button("📈 Start with Charts", key="start_charts", use_container_width=True, type="primary"):
+            st.switch_page("pages/1_📈_Price_Charts.py")
     
     with col2:
-        st.markdown("#### ⚙️ Advanced Features")
-        st.write("• **API Integration**: Connect your tools")
-        st.write("• **White-label Reports**: Branded analysis")
-        st.write("• **Team Collaboration**: Share insights")
-        st.write("• **Mobile App**: Access anywhere")
+        if st.button("🚀 Create Account", key="start_account", use_container_width=True):
+            st.switch_page("pages/5_⚙️_Authentication.py")
 
 if __name__ == "__main__":
     main()

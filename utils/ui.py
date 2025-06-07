@@ -12,6 +12,31 @@ def apply_custom_css():
     """Apply custom CSS styling for the entire application"""
     st.markdown("""
     <style>
+    /* Hide default Streamlit navigation */
+    .css-1d391kg {
+        display: none;
+    }
+    
+    /* Hide default sidebar navigation */
+    section[data-testid="stSidebar"] .css-ng1t4o {
+        display: none;
+    }
+    
+    /* Hide default page navigation */
+    .css-10trblm {
+        display: none;
+    }
+    
+    /* Hide streamlit pages navigation */
+    [data-testid="stSidebarNav"] {
+        display: none;
+    }
+    
+    /* Hide the default navigation menu */
+    .css-1544g2n {
+        display: none;
+    }
+    
     /* Main theme colors */
     :root {
         --kaspa-primary: #70C7BA;
@@ -319,9 +344,9 @@ def render_sidebar_navigation(user):
         st.markdown("---")
         
         # Authentication section
+        st.markdown("### ⚙️ Account")
+        
         if user['username'] == 'public':
-            st.markdown("### 🔐 Account")
-            
             if st.button("🔑 Login", use_container_width=True, key="sidebar_login"):
                 st.switch_page("pages/5_⚙️_Authentication.py")
             
@@ -329,39 +354,12 @@ def render_sidebar_navigation(user):
                 st.switch_page("pages/5_⚙️_Authentication.py")
         
         else:
-            st.markdown("### ⚙️ Account")
-            
             if st.button("👤 Profile & Settings", use_container_width=True, key="sidebar_profile"):
                 st.switch_page("pages/5_⚙️_Authentication.py")
             
             if st.button("🚪 Logout", use_container_width=True, key="sidebar_logout"):
                 logout_user()
                 st.rerun()
-        
-        # Quick stats in sidebar
-        render_sidebar_stats()
-
-def render_sidebar_stats():
-    """Render quick stats in sidebar"""
-    from utils.data import get_market_stats, fetch_kaspa_price_data
-    
-    st.markdown("---")
-    st.markdown("### ⚡ Quick Stats")
-    
-    df = fetch_kaspa_price_data(7)  # Last 7 days for sidebar
-    if not df.empty:
-        stats = get_market_stats(df)
-        
-        st.metric(
-            "KAS Price", 
-            f"${stats.get('current_price', 0):.4f}",
-            delta=f"{stats.get('price_change_24h', 0):+.2f}%"
-        )
-        
-        st.metric(
-            "24h Volume", 
-            f"${stats.get('volume_24h', 0)/1000000:.1f}M"
-        )
 
 def show_login_prompt(feature_name: str = "this feature"):
     """Show login prompt for premium features"""

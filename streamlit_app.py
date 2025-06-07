@@ -174,7 +174,7 @@ def render_public_homepage():
             # Fallback to basic line chart
             st.line_chart(chart_data.set_index('timestamp')['price'])
         
-        st.info("📊 Public users see 7-day preview. Create a free account for 30+ days of data!")
+        st.info("📊 Public users see 7-day preview. Create a free account for full access!")
     
     # Feature showcase
     st.subheader("🚀 Platform Features")
@@ -195,14 +195,16 @@ def render_public_homepage():
     # Pricing teaser
     st.subheader("💰 Choose Your Plan")
     
-    pricing_cols = st.columns(3)
+    pricing_cols = st.columns(2)
     
     with pricing_cols[0]:
         with st.container():
             st.markdown("### 🆓 Free")
             st.markdown("**$0/month**")
-            st.write("• 30-day price history")
-            st.write("• Basic power law analysis")
+            st.write("• Full price history")
+            st.write("• All chart types & indicators")
+            st.write("• Power law analysis")
+            st.write("• Network metrics")
             st.write("• Community support")
             
             if st.button("🚀 Get Started Free", key="pricing_free", use_container_width=True, type="primary"):
@@ -212,24 +214,13 @@ def render_public_homepage():
         with st.container():
             st.markdown("### ⭐ Premium")
             st.markdown("**$29/month**")
-            st.write("• Full historical data")
-            st.write("• Advanced analytics")
-            st.write("• Data export")
+            st.write("• Everything in Free")
+            st.write("• Data export (CSV/JSON)")
+            st.write("• API access")
             st.write("• Email support")
+            st.write("• Priority features")
             
             if st.button("⭐ Upgrade to Premium", key="pricing_premium", use_container_width=True):
-                st.switch_page("pages/5_⚙️_Authentication.py")
-    
-    with pricing_cols[2]:
-        with st.container():
-            st.markdown("### 👑 Pro")
-            st.markdown("**$99/month**")
-            st.write("• Everything in Premium")
-            st.write("• API access")
-            st.write("• Custom models")
-            st.write("• Priority support")
-            
-            if st.button("👑 Go Pro", key="pricing_pro", use_container_width=True):
                 st.switch_page("pages/5_⚙️_Authentication.py")
     
     # Call to action
@@ -265,25 +256,20 @@ def render_authenticated_homepage(user):
         st.metric("Your Plan", subscription.title())
     
     with col3:
-        if subscription in ['premium', 'pro']:
-            st.metric("Power Law Signal", "Above Trend", "+15%")
-        else:
-            st.metric("Power Law", "🔒 Premium Feature")
+        st.metric("All Features", "✅ Unlocked")
     
     with col4:
-        st.metric("Active Alerts", "3 Active")
+        if subscription == 'premium':
+            st.metric("Data Export", "✅ Available")
+        else:
+            st.metric("Data Export", "🔒 Premium Feature")
     
     # Enhanced chart for authenticated users
     if not df.empty:
         st.subheader("📈 Price Analysis Dashboard")
         
-        # Chart timeframe based on subscription
-        if subscription == 'free':
-            chart_data = df.tail(30)
-            st.info("📊 Free accounts: 30-day data. Upgrade for full historical access!")
-        else:
-            chart_data = df.tail(365)  # 1 year for premium+
-            st.success(f"📊 {subscription.title()} account: Full historical data access")
+        chart_data = df.tail(365)  # 1 year for all users
+        st.success(f"📊 {subscription.title()} account: Full historical data access")
         
         # Create advanced chart
         fig = go.Figure()
@@ -297,8 +283,8 @@ def render_authenticated_homepage(user):
             line=dict(color='#70C7BA', width=2)
         ))
         
-        # Add volume for premium users
-        if subscription in ['premium', 'pro'] and PLOTLY_AVAILABLE:
+        # Add volume
+        if PLOTLY_AVAILABLE:
             fig.add_trace(go.Scatter(
                 x=chart_data['timestamp'],
                 y=chart_data['volume'] / 1000000,  # Scale volume
@@ -347,14 +333,11 @@ def render_authenticated_homepage(user):
             st.switch_page("pages/2_📊_Power_Law.py")
     
     with action_cols[2]:
-        if subscription in ['premium', 'pro']:
-            if st.button("🌐 Network Metrics", key="dash_network", use_container_width=True):
-                st.switch_page("pages/3_🌐_Network_Metrics.py")
-        else:
-            st.button("🔒 Network Metrics", disabled=True, use_container_width=True)
+        if st.button("🌐 Network Metrics", key="dash_network", use_container_width=True):
+            st.switch_page("pages/3_🌐_Network_Metrics.py")
     
     with action_cols[3]:
-        if subscription in ['premium', 'pro']:
+        if subscription == 'premium':
             if st.button("📋 Data Export", key="dash_export", use_container_width=True):
                 st.switch_page("pages/4_📋_Data_Export.py")
         else:
@@ -364,9 +347,9 @@ def render_authenticated_homepage(user):
     st.subheader("📋 Recent Activity")
     
     activity_data = [
-        {"time": "2 hours ago", "action": "Exported price data", "status": "✅"},
-        {"time": "1 day ago", "action": "Created custom alert", "status": "✅"},
-        {"time": "3 days ago", "action": "Viewed power law analysis", "status": "✅"},
+        {"time": "2 hours ago", "action": "Viewed price charts", "status": "✅"},
+        {"time": "1 day ago", "action": "Analyzed power law model", "status": "✅"},
+        {"time": "3 days ago", "action": "Checked network metrics", "status": "✅"},
     ]
     
     for activity in activity_data:
